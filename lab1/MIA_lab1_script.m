@@ -4,7 +4,7 @@ clear all
 close all
 clc
 
-%% Open images and get information
+%% Open images and get information 2.1 and 2.2
 
 % Ultrasound
 us = dicomread('ultrasound.DCM');
@@ -41,28 +41,70 @@ mri_spacing_xy = mri_info.PixelSpacing
 mri_spacing_z = mri_info.SpacingBetweenSlices
 
 
-%% MRI histogram
+%% MRI histogram - 2.3
 
-mri_h = histogram(mri);
+% histogram(mri);
+clear hist;
+clear hist_centers;
+[hist,hist_centers] = hist(double(mri(:)),256);
+plot(hist_centers,hist);
 
-%% MRI slices
-
-figure;
-imagesc(mri(:,:,11));
-figure;
-imagesc(mri(:,:,12));
-
-ratio = mri_spacing_z/mri_spacing_xy;
-% imresize
-figure;
-imagesc(permute(mri(:,255,:),[1 3 2]));
-figure;
-imagesc(permute(mri(:,256,:),[1 3 2]));
+%% MRI slices - 2.4
 
 figure;
-imagesc(permute(mri(255,:,:),[3 2 1]));
+imshow(mri(:,:,11),[]);
+
 figure;
-imagesc(permute(mri(256,:,:),[3 2 1]));
+imshow(mri(:,:,12),[]);
+
+
+ratio = mri_spacing_z/mri_spacing_xy(1);
+
+figure;
+I = permute(mri(:,255,:),[1 3 2]);
+s = size(I);
+new_s = [s(1) round(ratio*s(2))];
+I_r = imresize(I,new_s);
+imshow(I_r,[]);
+
+figure;
+I = permute(mri(:,256,:),[1 3 2]);
+s = size(I);
+new_s = [s(1) round(ratio*s(2))];
+I_r = imresize(I,new_s);
+imshow(I_r,[]);
+
+
+figure;
+I = permute(mri(255,:,:),[3 2 1]);
+s = size(I);
+new_s = [round(ratio*s(1)) s(2)];
+I_r = imresize(I,new_s);
+imshow(I_r,[]);
+
+figure;
+I = permute(mri(256,:,:),[3 2 1]);
+s = size(I);
+new_s = [round(ratio*s(1)) s(2)];
+I_r = imresize(I,new_s);
+imshow(I_r,[]);
+
+%% Visualising mammography
+
+figure;
+imshow(mmg_raw,[]);
+figure;
+imshow(mmg_pre,[]);
+
+%% Processing mammograpy
+
+T = 2000;
+mmg_cut = double(max(0,T - mmg_raw))/T;
+mmg_pow = mmg_cut.^(5);
+mmg_sh = imsharpen(mmg_pow);
+mmg_eq = adapthisteq(mmg_sh);
+imshow(mmg_eq,[]);
+
 
 
 
