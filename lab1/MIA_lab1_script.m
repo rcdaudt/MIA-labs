@@ -12,6 +12,7 @@ us_info = dicominfo('ultrasound.DCM');
 us_rows = us_info.Rows
 us_cols = us_info.Columns
 us_name = us_info.PatientName.FamilyName
+us_bd = us_info.PatientBirthDate
 
 % Mammography raw
 mmg_raw = dicomread('MAMMOGRAPHY_RAW.dcm');
@@ -20,6 +21,8 @@ mmg_raw_rows = mmg_raw_info.Height
 mmg_raw_cols = mmg_raw_info.Width
 mmg_raw_spacing = mmg_raw_info.ImagerPixelSpacing
 mmg_raw_name = mmg_raw_info.PatientName.FamilyName
+mmg_raw_age = mmg_raw_info.PatientAge
+mmg_raw_bd = mmg_raw_info.PatientBirthDate
 
 % Mammography presentation
 mmg_pre = dicomread('MAMMOGRAPHY_PRESENTATION.dcm');
@@ -39,6 +42,7 @@ mri_rows = mri_info.Height
 mri_cols = mri_info.Width
 mri_spacing_xy = mri_info.PixelSpacing
 mri_spacing_z = mri_info.SpacingBetweenSlices
+mri_age = mri_info.PatientAge
 
 
 %% MRI histogram - 2.3
@@ -47,54 +51,97 @@ mri_spacing_z = mri_info.SpacingBetweenSlices
 clear hist;
 clear hist_centers;
 [hist,hist_centers] = hist(double(mri(:)),256);
-plot(hist_centers,hist);
+plot(hist_centers,hist,'LineWidth',2);
+grid on;
+title('MRI Histogram');
 
 %% MRI slices - 2.4
 
 figure;
-imshow(mri(:,:,11),[]);
+I_r = double(mri(:,:,6));
+imshow(I_r,[]);
+title('Axial slice 1');
+maxi = max(max(I_r));
+mini = min(min(I_r));
+imwrite((I_r-mini)/(maxi-mini),'axi_1.png');
+pause(0.1);
 
 figure;
-imshow(mri(:,:,12),[]);
+I_r = double(mri(:,:,12));
+imshow(I_r,[]);
+title('Axial slice 2');
+maxi = max(max(I_r));
+mini = min(min(I_r));
+imwrite((I_r-mini)/(maxi-mini),'axi_2.png');
+pause(0.1);
 
 
 ratio = mri_spacing_z/mri_spacing_xy(1);
 
 figure;
-I = permute(mri(:,255,:),[1 3 2]);
+I = permute(double(mri(:,128,:)),[1 3 2]);
 s = size(I);
 new_s = [s(1) round(ratio*s(2))];
 I_r = imresize(I,new_s);
 imshow(I_r,[]);
+title('Sagittal slice 1');
+maxi = max(max(I_r));
+mini = min(min(I_r));
+imwrite((I_r-mini)/(maxi-mini),'sag_1.png');
+pause(0.1);
 
 figure;
-I = permute(mri(:,256,:),[1 3 2]);
+I = permute(double(mri(:,256,:)),[1 3 2]);
 s = size(I);
 new_s = [s(1) round(ratio*s(2))];
 I_r = imresize(I,new_s);
 imshow(I_r,[]);
+title('Sagittal slice 2');
+maxi = max(max(I_r));
+mini = min(min(I_r));
+imwrite((I_r-mini)/(maxi-mini),'sag_2.png');
+pause(0.1);
 
 
 figure;
-I = permute(mri(255,:,:),[3 2 1]);
+I = permute(double(mri(128,:,:)),[2 3 1]);
 s = size(I);
-new_s = [round(ratio*s(1)) s(2)];
+% new_s = [round(ratio*s(1)) s(2)];
+new_s = [s(1) round(ratio*s(2))];
 I_r = imresize(I,new_s);
 imshow(I_r,[]);
+title('Coronal slice 1');
+maxi = max(max(I_r));
+mini = min(min(I_r));
+imwrite((I_r-mini)/(maxi-mini),'cor_1.png');
+pause(0.1);
 
 figure;
-I = permute(mri(256,:,:),[3 2 1]);
+I = permute(double(mri(256,:,:)),[2 3 1]);
 s = size(I);
-new_s = [round(ratio*s(1)) s(2)];
+new_s = [s(1) round(ratio*s(2))];
 I_r = imresize(I,new_s);
 imshow(I_r,[]);
+title('Coronal slice 2');
+maxi = max(max(I_r));
+mini = min(min(I_r));
+imwrite((I_r-mini)/(maxi-mini),'cor_2.png');
+pause(0.1);
 
 %% Visualising mammography
 
 figure;
 imshow(mmg_raw,[]);
+I = im2double(mmg_raw);
+maxi = max(max(I));
+mini = min(min(I));
+imwrite((I-mini)/(maxi-mini),'mmg_raw.png');
 figure;
 imshow(mmg_pre,[]);
+I = im2double(mmg_pre);
+maxi = max(max(I));
+mini = min(min(I));
+imwrite((I-mini)/(maxi-mini),'mmg_pre.png');
 
 %% Processing mammograpy
 
@@ -105,6 +152,9 @@ mmg_sh = imsharpen(mmg_pow);
 mmg_eq = adapthisteq(mmg_sh);
 imshow(mmg_eq,[]);
 
+maxi = max(max(mmg_eq));
+mini = min(min(mmg_eq));
+imwrite((mmg_eq-mini)/(maxi-mini),'mmg_eq.png');
 
 
 
